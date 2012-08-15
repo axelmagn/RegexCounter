@@ -90,36 +90,37 @@ public class RegexCounter extends Configured {
   }
   
   public static class CSVOutputFormat
-  extends TextOutputFormat<Text, LongWritable> {
-public RecordWriter<Text, LongWritable> getRecordWriter(
-    FileSystem ignored, JobConf job, String name, Progressable progress)
-    throws IOException {
-  Path file = FileOutputFormat.getTaskOutputPath(job, name);
-  FileSystem fs = file.getFileSystem(job);
-  FSDataOutputStream fileOut = fs.create(file, progress);
-  return new CSVRecordWriter(fileOut);
-}
+      extends TextOutputFormat<Text, LongWritable> {
+    
+    public RecordWriter<Text, LongWritable> getRecordWriter(
+        FileSystem ignored, JobConf job, String name, Progressable progress)
+        throws IOException {
+      Path file = FileOutputFormat.getTaskOutputPath(job, name);
+      FileSystem fs = file.getFileSystem(job);
+      FSDataOutputStream fileOut = fs.create(file, progress);
+      return new CSVRecordWriter(fileOut);
+    }
 
-protected static class CSVRecordWriter
-    implements RecordWriter<Text, LongWritable> {
-  protected DataOutputStream outStream;
+    protected static class CSVRecordWriter
+        implements RecordWriter<Text, LongWritable> {
+      protected DataOutputStream outStream;
 
-  public CSVRecordWriter(DataOutputStream out) {
-    this.outStream = out;
+      public CSVRecordWriter(DataOutputStream out) {
+        this.outStream = out;
+      }
+
+      public synchronized void write(Text key, LongWritable value)
+          throws IOException {
+        CsvRecordOutput csvOutput = new CsvRecordOutput(outStream);
+        csvOutput.writeString(key.toString(), "word");
+        csvOutput.writeLong(value.get(), "occurrences");
+      }
+  
+      public synchronized void close(Reporter reporter) throws IOException {
+        outStream.close();
+      }
+    }
   }
-
-  public synchronized void write(Text key, LongWritable value)
-      throws IOException {
-    CsvRecordOutput csvOutput = new CsvRecordOutput(outStream);
-    csvOutput.writeString(key.toString(), "word");
-    csvOutput.writeLong(value.get(), "occurrences");
-  }
-
-  public synchronized void close(Reporter reporter) throws IOException {
-    outStream.close();
-  }
-}
-}
 
   public static void main(String[] args) {
  // Parses command-line arguments.
