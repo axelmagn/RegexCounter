@@ -122,7 +122,7 @@ public class RegexCounter extends Configured {
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
  // Parses command-line arguments.
     String awsCredentials = args[0];
     String awsSecret = args[1];
